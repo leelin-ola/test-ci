@@ -1,0 +1,19 @@
+name: PHP Syntax Checker
+
+on: # 推送或pr分支触发
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  phplint:
+    name: PHP Syntax Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Validate PHP files
+        run: find . -type f -name "*.php" -exec php -l {} \;
