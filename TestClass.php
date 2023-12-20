@@ -8,3 +8,4 @@ class TestClass
 new ''
 sdfasf
 in_array(1,1)
+    1
