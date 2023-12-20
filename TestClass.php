@@ -2,7 +2,7 @@
 
 class TestClass
 {
-   'sss'ssss
+   'sss'ssss1
 }
 
 new ''
