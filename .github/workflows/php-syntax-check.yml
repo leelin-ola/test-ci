@@ -15,5 +15,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      # Setup PHP
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.2' # 指定所需的PHP版本，比如 7.4, 8.0, 或 8.1 等
+
       - name: Validate PHP files
         run: find . -type f -name "*.php" -exec php -l {} \;
