@@ -2,9 +2,9 @@ name: PHP Syntax Checker
 
 on: # 推送或pr分支触发
   push:
-    branches: [ master ]
+    branches: [ master,main ]
   pull_request:
-    branches: [ master ]
+    branches: [ master,main ]
 
 jobs:
   phplint:
