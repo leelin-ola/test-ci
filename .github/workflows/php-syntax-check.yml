@@ -23,25 +23,17 @@ jobs:
 
       - name: Check syntax for changed PHP files
         run: |
-          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.php$')
-          if [ -z "$CHANGED_FILES" ]; then
-            echo "No PHP files to check"
-            exit 0
-          fi
-          # 遍历所有更改的.php文件并检查语法
-          echo "Checking PHP syntax..."
-          ERROR=0
-          for FILE in $CHANGED_FILES; do
-            echo "Syntax checking $FILE"
-            php -l $FILE
-            if [ $? -ne 0 ]; then
-              echo "Syntax error detected in $FILE"
-              ERROR=1
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.php$' > changed_files.txt
+          echo "Changed PHP Files:"
+          cat changed_files.txt
+          while IFS= read -r FILE; do
+            if [ -f "$FILE" ]; then
+              php -l "$FILE"
+              if [ $? -ne 0 ]; then
+                echo "Syntax error detected in $FILE"
+                exit 1
+              fi
+            else
+              echo "WARNING: File '$FILE' does not exist or is not a regular file."
             fi
-          done
-          # 如果发现语法错误则退出
-          if [ $ERROR -ne 0 ]; then
-            exit 1
-          fi
-          echo "No syntax errors detected"
-          exit 0
+          done < changed_files.txt
