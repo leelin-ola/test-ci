@@ -26,9 +26,9 @@ jobs:
       - name: Set up list of changed files  # 获取修改文件列表
         run: |       
           if ${{ github.event_name == 'pull_request' }}; then
-            echo "CHANGED_FILES=$(git diff --name-only -r HEAD^1 HEAD | xargs)" >> $GITHUB_ENV
+            echo "CHANGED_FILES=$(git diff --name-only -r HEAD^1 HEAD| grep '\.php | xargs)" >> $GITHUB_ENV
           else
-            echo "CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_ENV
+            echo "CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }}| grep '\.php | xargs)" >> $GITHUB_ENV
           fi
 
       - name: Check syntax for changed PHP files
