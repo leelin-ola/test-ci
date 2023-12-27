@@ -21,28 +21,29 @@ jobs:
         with:
           php-version: '7.2' # 指定所需的PHP版本
 
-      - name: Get list of changed files for a Pull Request # 获取PR的文件列表
-        if: github.event_name == 'pull_request'
+      - name: Set up list of changed files  # 获取修改文件列表
         run: |
-          echo "CHANGED_FILES<<EOF" >> $GITHUB_ENV
-          git diff --name-only ${{ github.event.pull_request.base.sha }}...${{ github.head_ref }} | grep '\.php$' >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }}...${{ github.sha }} | grep '\.php$')" >> $GITHUB_ENV
+          else
+            echo "CHANGED_FILES=$(git diff --name-only ${{ github.event.before }}...${{ github.sha }} | grep '\.php$')" >> $GITHUB_ENV
+          fi
 
-      - name: Get list of changed files for a push to main branch  # 获取push的文件列表
-        if: github.event_name == 'push'
-        run: |
-          echo "CHANGED_FILES<<EOF" >> $GITHUB_ENV
-          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.php$' >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-      
       - name: Check syntax for changed PHP files
         run: |
-          while IFS= read -r FILE; do
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No PHP files to check"
+            exit 0
+          fi
+          for FILE in $CHANGED_FILES; do
             if [ -f "$FILE" ]; then
               php -l "$FILE"
               if [ $? -ne 0 ]; then
                 echo "Syntax error detected in $FILE"
                 exit 1
               fi
+            else
+              echo "'$FILE' cannot be found or is not a valid file."
             fi
-          done <<< "${{ env.CHANGED_FILES }}"
+          done
+
