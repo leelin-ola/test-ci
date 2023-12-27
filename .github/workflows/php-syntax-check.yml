@@ -41,11 +41,7 @@ jobs:
           for FILE in $CHANGED_FILES; do
             if [ -f "$FILE" ]; then
               echo "Syntax checking in $FILE"
-              php -l "$FILE"
-              if [ $? -ne 0 ]; then
-                echo "Syntax error detected in $FILE"
-                ERR=1
-              fi
+              php -l "$FILE" || ERR=1
             fi
           done
           if [ "$ERR" == "1" ]; then
