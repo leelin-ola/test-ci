@@ -15,18 +15,35 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Setup PHP
+      # 设置 PHP
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '7.2' # 指定所需的PHP版本，比如 7.4, 8.0, 或 8.1 等
+          php-version: '7.2' # 指定所需的PHP版本
 
-      - name: Validate PHP files
+      - name: Set up list of changed files  # 获取修改文件列表
         run: |
-          ERR=0
-          for file in $(find . -type f -name "*.php"); do
-          php -l $file || ERR=1
-          done
-          if [ "$ERR" == "1" ]; then
-          exit 1
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }}...${{ github.sha }} | grep '\.php$')" >> $GITHUB_ENV
+          else
+            echo "CHANGED_FILES=$(git diff --name-only ${{ github.event.before }}...${{ github.sha }} | grep '\.php$')" >> $GITHUB_ENV
           fi
+
+      - name: Check syntax for changed PHP files
+        run: |
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No PHP files to check"
+            exit 0
+          fi
+          for FILE in $CHANGED_FILES; do
+            if [ -f "$FILE" ]; then
+              php -l "$FILE"
+              if [ $? -ne 0 ]; then
+                echo "Syntax error detected in $FILE"
+                exit 1
+              fi
+            else
+              echo "'$FILE' cannot be found or is not a valid file."
+            fi
+          done
+
