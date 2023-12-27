@@ -46,6 +46,7 @@ jobs:
                 echo "Syntax error detected in $FILE"
                 ERR=1
               fi
+            fi
           done
           if [ "$ERR" == "1" ]; then
             exit 1
