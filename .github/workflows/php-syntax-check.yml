@@ -15,17 +15,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Setup PHP
+      # 设置 PHP
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '7.2' # 指定所需的PHP版本
 
+      - name: Get list of changed files for a Pull Request # 获取PR的文件列表
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "CHANGED_FILES<<EOF" >> $GITHUB_ENV
+          git diff --name-only ${{ github.event.pull_request.base.sha }}...${{ github.head_ref }} | grep '\.php$' >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Get list of changed files for a push to main branch  # 获取push的文件列表
+        if: github.event_name == 'push'
+        run: |
+          echo "CHANGED_FILES<<EOF" >> $GITHUB_ENV
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.php$' >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+      
       - name: Check syntax for changed PHP files
         run: |
-          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.php$' > changed_files.txt
-          echo "Changed PHP Files:"
-          cat changed_files.txt
           while IFS= read -r FILE; do
             if [ -f "$FILE" ]; then
               php -l "$FILE"
@@ -33,7 +44,5 @@ jobs:
                 echo "Syntax error detected in $FILE"
                 exit 1
               fi
-            else
-              echo "WARNING: File '$FILE' does not exist or is not a regular file."
             fi
-          done < changed_files.txt
+          done <<< "${{ env.CHANGED_FILES }}"
