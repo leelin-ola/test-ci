@@ -39,6 +39,7 @@ jobs:
           fi
           for FILE in $CHANGED_FILES; do
             if [ -f "$FILE" ]; then
+              echo "Syntax checking in $FILE"
               php -l "$FILE"
               if [ $? -ne 0 ]; then
                 echo "Syntax error detected in $FILE"
